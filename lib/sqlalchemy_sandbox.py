@@ -43,3 +43,71 @@ if __name__ == "__main__":
 
     Session = sessionmaker(bind=engine)
     session = Session()
+
+    albert_einstein = Student(
+        name="Albert Einstein",
+        email="albert.einstein@zurich.edu",
+        grade=6,
+        birthday=datetime(year=1879, month=3, day=14),
+    )
+
+    alan_turing = Student(
+        name="Alan Turing",
+        email="alan.turing@sherborne.edu",
+        grade=11,
+        birthday=datetime(year=1912, month=6, day=23),
+    )
+
+    session.bulk_save_objects([albert_einstein, alan_turing])
+    session.commit()
+
+    students = session.query(Student).all()
+
+    names = session.query(Student.name).all()
+
+    students_by_name = session.query(Student.name).order_by(Student.name).all()
+
+    students_by_grade_desc = (
+        session.query(Student.name, Student.grade).order_by(desc(Student.grade)).all()
+    )
+
+    oldest_student = (
+        session.query(Student.name, Student.birthday)
+        .order_by(desc(Student.grade))
+        .first()
+    )
+
+    student_count = session.query(func.count(Student.id)).first()
+
+    query = (
+        session.query(Student)
+        .filter(Student.name.like("%Alan%"), Student.grade == 11)
+        .all()
+    )
+
+    query = session.query(Student).filter(Student.name == "Albert Einstein")
+
+    # retrieve first matching record as object
+    albert_einstein = query.first()
+
+    # delete record
+    session.delete(albert_einstein)
+    session.commit()
+
+    # try to retrieve deleted record
+    albert_einstein = query.first()
+
+    print(albert_einstein)
+
+    session.query(Student).update({Student.grade: Student.grade + 1})
+    print([(student.name, student.grade) for student in session.query(Student)])
+
+    for record in query:
+        print(record.name)
+
+    print(students)
+    print(names)
+    print(students_by_name)
+    print(students_by_grade_desc)
+    print(oldest_student)
+    print(student_count)
